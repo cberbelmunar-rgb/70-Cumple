@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Patron de la Familia - 7 Sobres</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Lato',sans-serif;background:#0d1b2a;color:#f0e6d3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes popIn{from{transform:scale(0.72);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes shake{0%,100%{transform:rotate(0);}20%{transform:rotate(-3deg);}40%{transform:rotate(3deg);}60%{transform:rotate(-2deg);}80%{transform:rotate(2deg);}}
+#intro{text-align:center;max-width:460px;animation:fadeIn 1s ease;}
+.intro-photo{width:190px;height:190px;object-fit:cover;object-position:center center;border-radius:50%;border:5px solid #d4a843;margin:0 auto 18px;display:block;box-shadow:0 0 50px rgba(212,168,67,0.35);}
+.intro-title{font-family:'Playfair Display',serif;font-size:clamp(28px,6vw,50px);color:#d4a843;line-height:1.2;margin-bottom:6px;}
+.intro-sub{font-size:11px;letter-spacing:5px;text-transform:uppercase;color:#7a9bbf;margin-bottom:14px;}
+.intro-hint{font-size:14px;color:#a8b8c8;line-height:1.9;margin-bottom:28px;}
+#sobres-screen{display:none;width:100%;max-width:660px;animation:fadeIn 0.6s ease;}
+.sobres-header{text-align:center;margin-bottom:24px;}
+.sobres-title{font-family:'Playfair Display',serif;font-size:24px;color:#d4a843;margin-bottom:6px;}
+.sobres-hint{font-size:12px;color:#7a9bbf;}
+.progress-track{background:rgba(255,255,255,0.08);border-radius:10px;height:4px;margin:12px 0 24px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#d4a843,#f0c060);border-radius:10px;transition:width 0.5s ease;width:0%;}
+.sobres-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:24px;}
+.sobre-btn{background:linear-gradient(145deg,#1e3a5f,#162d4a);border:2px solid #d4a843;border-radius:14px;padding:20px 10px 16px;cursor:pointer;text-align:center;transition:transform 0.2s,box-shadow 0.2s;position:relative;font-family:'Lato',sans-serif;}
+.sobre-btn:hover:not(.opened){transform:translateY(-6px);box-shadow:0 16px 36px rgba(212,168,67,0.35);animation:shake 0.4s ease;}
+.sobre-btn.opened{opacity:0.35;cursor:default;border-color:#3a4a5a;transform:none !important;box-shadow:none !important;}
+.sobre-icon{font-size:36px;margin-bottom:8px;display:block;}
+.sobre-label{font-size:11px;color:#d4a843;font-weight:700;letter-spacing:1px;}
+.sobre-sub{font-size:10px;color:#7a9bbf;margin-top:3px;}
+.sobre-check{position:absolute;top:8px;right:10px;font-size:14px;display:none;}
+.sobre-btn.opened .sobre-check{display:block;}
+.btn-final-wrap{text-align:center;min-height:50px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:300;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.active{display:flex;animation:fadeIn 0.25s ease;}
+.modal-box{background:linear-gradient(160deg,#1a2f4a,#0f1f33);border:1px solid rgba(212,168,67,0.35);border-radius:22px;padding:34px 30px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;position:relative;animation:popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+.modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:#7a9bbf;font-size:22px;cursor:pointer;}
+.modal-close:hover{color:#d4a843;}
+.m-icon{font-size:50px;text-align:center;margin-bottom:10px;display:block;}
+.m-title{font-family:'Playfair Display',serif;font-size:clamp(20px,4vw,30px);color:#d4a843;text-align:center;margin-bottom:14px;line-height:1.3;}
+.m-divider{width:50px;height:1px;background:linear-gradient(90deg,transparent,#d4a843,transparent);margin:0 auto 18px;}
+.m-body p{font-size:14px;line-height:1.9;color:#c8b89a;margin-bottom:12px;}
+.hl{color:#d4a843;font-weight:700;}
+.broma{background:rgba(255,255,255,0.04);border-left:3px solid #d4a843;border-radius:0 8px 8px 0;padding:10px 14px;margin:9px 0;font-style:italic;font-size:13px;color:#a89878;}
+.m-photo{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin:12px 0;border:1px solid rgba(212,168,67,0.25);}
+.m-photo-v{max-width:100%;max-height:320px;display:block;margin:12px auto;border-radius:10px;border:1px solid rgba(212,168,67,0.25);object-fit:contain;}
+.m-caption{font-size:10px;color:#7a9bbf;text-align:center;margin-top:-8px;margin-bottom:12px;font-style:italic;}
+.crew-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0;}
+.crew-card{background:rgba(255,255,255,0.05);border:1px solid rgba(212,168,67,0.2);border-radius:10px;padding:10px 6px;text-align:center;}
+.crew-card.absent{opacity:0.38;border-style:dashed;}
+.crew-photo{width:50px;height:50px;object-fit:cover;border-radius:50%;border:2px solid #d4a843;margin:0 auto 5px;display:block;}
+.crew-name{font-size:11px;font-weight:700;color:#f0e6d3;}
+.crew-role{font-size:9px;color:#7a9bbf;margin-top:2px;}
+.pista-box{background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.3);border-radius:12px;padding:18px;margin:14px 0;text-align:center;}
+.pista-num{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#7a9bbf;margin-bottom:6px;}
+.pista-text{font-family:'Playfair Display',serif;font-size:20px;color:#d4a843;line-height:1.4;}
+.pista-sub{font-size:12px;color:#a8b8c8;margin-top:8px;font-style:italic;}
+.quiz-box{background:rgba(255,255,255,0.03);border:1px solid rgba(122,155,191,0.2);border-radius:10px;padding:14px;margin:12px 0;}
+.quiz-q{font-size:13px;color:#a8b8c8;margin-bottom:10px;font-style:italic;}
+.quiz-opts{display:flex;flex-direction:column;gap:7px;}
+.quiz-opt{background:rgba(255,255,255,0.03);border:1px solid rgba(122,155,191,0.2);border-radius:7px;padding:9px 12px;cursor:pointer;font-size:12px;color:#c8b89a;transition:all 0.2s;text-align:left;}
+.quiz-opt:hover{border-color:#d4a843;color:#d4a843;}
+.quiz-opt.correct{border-color:#4caf50;color:#4caf50;background:rgba(76,175,80,0.08);}
+.quiz-opt.wrong{border-color:#e57373;color:#e57373;background:rgba(229,115,115,0.08);}
+.quiz-result{display:none;font-size:12px;margin-top:8px;padding:8px;border-radius:7px;text-align:center;}
+.quiz-result.show{display:block;}
+.quiz-result.ok{color:#4caf50;background:rgba(76,175,80,0.08);}
+.quiz-result.fail{color:#e57373;background:rgba(229,115,115,0.08);}
+.dest-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.dest-row:last-child{border-bottom:none;}
+.dest-badge{background:#d4a843;color:#0d1b2a;font-weight:700;font-size:9px;padding:3px 6px;border-radius:5px;min-width:38px;text-align:center;line-height:1.5;}
+.dest-place{font-size:13px;font-weight:700;color:#f0e6d3;}
+.dest-note{font-size:11px;color:#7a9bbf;font-style:italic;margin-top:2px;}
+.reveal-box{background:linear-gradient(135deg,#1a2744,#0f1f33);border:2px solid #d4a843;border-radius:16px;padding:26px;text-align:center;margin:14px 0;}
+.reveal-title{font-family:'Playfair Display',serif;font-size:34px;color:#d4a843;margin-bottom:8px;}
+.reveal-dates{font-size:20px;font-weight:700;color:white;margin:8px 0;}
+.btn-gold{background:linear-gradient(135deg,#d4a843,#c08820);color:#0d1b2a;border:none;padding:13px 32px;font-size:15px;font-weight:700;border-radius:50px;cursor:pointer;font-family:'Lato',sans-serif;transition:transform 0.2s,box-shadow 0.2s;margin-top:8px;}
+.btn-gold:hover{transform:scale(1.05);box-shadow:0 8px 24px rgba(212,168,67,0.4);}
+.btn-outline{background:transparent;color:#7a9bbf;border:1px solid #7a9bbf;padding:10px 24px;font-size:13px;border-radius:50px;cursor:pointer;font-family:'Lato',sans-serif;transition:all 0.2s;}
+.btn-outline:hover{background:rgba(122,155,191,0.1);}
+#final-screen{display:none;text-align:center;max-width:520px;animation:fadeIn 1s ease;}
+.final-title{font-family:'Playfair Display',serif;font-size:clamp(26px,5vw,44px);color:#d4a843;margin-bottom:10px;}
+.final-photo{width:100%;max-height:260px;object-fit:cover;border-radius:16px;border:3px solid #d4a843;margin:16px 0;box-shadow:0 0 40px rgba(212,168,67,0.2);}
+.final-ticket{border:2px dashed #d4a843;border-radius:14px;padding:20px;margin:16px 0;text-align:left;}
+.final-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(212,168,67,0.15);font-size:13px;}
+.final-row:last-child{border-bottom:none;}
+.fl{color:#7a9bbf;}.fv{color:#f0e6d3;font-weight:700;}
+</style>
+</head>
+<body>
+<div id="intro">
+  <img src="fotos/papa y mama.jpg" alt="Papa y Mama" class="intro-photo">
+  <div class="intro-title">El Patr&#243;n<br>de la Familia</div>
+  <div class="intro-sub">70 A&#241;os &middot; Abril 2026 &middot; Familia Berbel</div>
+  <p class="intro-hint">Tienes 7 sobres sellados.<br>&#193;brelos en orden &#8212; cada uno guarda un secreto.<br>No hagas trampa.</p>
+  <button class="btn-gold" onclick="showSobres()">&#161;Empezar! &#9993;</button>
+</div>
+<div id="sobres-screen">
+  <div class="sobres-header">
+    <div class="sobres-title">Tus 7 Sobres Secretos</div>
+    <div class="sobres-hint">&#193;brelos en orden &#8212; el &#250;ltimo es el mejor</div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+  <div class="sobres-grid">
+    <div class="sobre-btn" id="s0" onclick="openSobre(0)"><span class="sobre-check">&#10003;</span><span class="sobre-icon">&#9998;&#65039;</span><div class="sobre-label">Sobre #1</div><div class="sobre-sub">El Pr&#243;logo</div></div>
+    <div class="sobre-btn" id="s1" onclick="openSobre(1)"><span class="sobre-check">&#10003;</span><span class="sobre-icon">&#128081;</span><div class="sobre-label">Sobre #2</div><div class="sobre-sub">La Art&#237;fice</div></div>
+    <div class="sobre-btn" id="s2" onclick="openSobre(2)"><span class="sobre-check">&#10003;</span><span class="sobre-icon">&#10084;&#65039;</span><div class="sobre-label">Sobre #3</div><div class="sobre-sub">El Equipo</div></div>
+    <div class="sobre-btn" id="s3" onclick="openSobre(3)"><span class="sobre-check">&#10003;</span><span class="sobre-icon">&#127880;</span><div class="sobre-label">Sobre #4</div><div class="sobre-sub">Pista #1</div></div>
+    <div class="sobre-btn" id="s4" onclick="openSobre(4)"><span class="sobre-check">&#10003;</span><span class="sobre-icon">&#127754;</span><div class="sobre-label">Sobre #5</div><div class="sobre-sub">Pista #2</div></div>
+    <div class="sobre-btn" id="s5" onclick="openSobre(5)"><span class="sobre-check">&#10003;</span><span class="sobre-icon">&#10067;</span><div class="sobre-label">Sobre #6</div><div class="sobre-sub">Pista #3</div></div>
+    <div class="sobre-btn" id="s6" onclick="openSobre(6)"><span class="sobre-check">&#10003;</span><span class="sobre-icon">&#127873;</span><div class="sobre-label">Sobre #7</div><div class="sobre-sub">&#191;Preparado?</div></div>
+  </div>
+  <div class="btn-final-wrap">
+    <button class="btn-outline" id="btn-final" style="display:none" onclick="showFinal()">Ver el gran final &#8594;</button>
+  </div>
+</div>
+<div id="final-screen">
+  <div style="font-size:40px;margin-bottom:12px;">&#127874; &#9875; &#127881;</div>
+  <div class="final-title">&#161;Felices 70, Patr&#243;n!</div>
+  <img src="fotos/imagen a la hora de dar la sorpresa.jpg" alt="La sorpresa" class="final-photo">
+  <p style="color:#c8b89a;font-size:15px;line-height:1.8;margin-bottom:18px;">Porque 70 a&#241;os merecen el mejor viaje.<br>Y t&#250; mereces la mejor familia del mundo.</p>
+  <div class="final-ticket">
+    <div class="final-row"><span class="fl">&#128197; Fecha de salida</span><span class="fv">19 de Julio, 2026</span></div>
+    <div class="final-row"><span class="fl">&#128674; Crucero</span><span class="fv">Norwegian Gem</span></div>
+    <div class="final-row"><span class="fl">&#128506; Ruta</span><span class="fv">Adri&#225;tico &amp; Mediterr&#225;neo</span></div>
+    <div class="final-row"><span class="fl">&#128101; A bordo</span><span class="fv">Toda la familia</span></div>
+    <div class="final-row"><span class="fl">&#129523; Maletas</span><span class="fv">&#161;Prepara las tuyas!</span></div>
+  </div>
+  <p style="font-size:13px;color:#7a9bbf;">Con todo nuestro amor &#8212;</p>
+  <p style="font-size:17px;color:#d4a843;font-weight:700;margin-top:6px;">Cristina, Cris, Naina, Paula y Martina &#128155;</p>
+</div>
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    <span class="m-icon" id="m-icon"></span>
+    <div class="m-title" id="m-title"></div>
+    <div class="m-divider"></div>
+    <div class="m-body" id="m-body"></div>
+    <div style="text-align:center;margin-top:20px;">
+      <button class="btn-gold" onclick="closeModal()">Cerrar sobre &#9993;</button>
+    </div>
+  </div>
+</div>
+<script>
+const sobres = [
+  {
+    icon: "✏️",
+    title: "Lo que nos ha costado llegar aquí",
+    body: `<p>Papá, lo que estás leyendo es el resultado de semanas de <span class="hl">caos coordinado</span>, grupos de WhatsApp al límite y una logística familiar que haría sudar a cualquier director de operaciones.</p>
+    <p>Coordinar a esta familia para algo así no es tarea fácil. Somos muchos, tenemos muchas opiniones, y todos tenemos el calendario lleno. Pero aquí estamos — porque para ti, siempre encontramos la manera.</p>
+    <div class="broma">📅 "¿El 15 de julio?" — "No puedo, trabajo" — "¿El 20?" — "Ese finde tengo boda" — "¿Agosto?" — "Uff, agosto no..."</div>
+    <div class="broma">📱 Grupo familiar a las 23:47h: "Chicas, ¿confirmamos ya o qué?" — Visto ✓✓ — Silencio sepulcral.</div>
+    <div class="broma">🏆 Récord mundial de "sí pero luego lo miramos" establecido por esta familia en 2025. Medalla de oro.</div>
+    <p>Pero al final... <span class="hl">lo conseguimos.</span> Y la culpable de que esto sea realidad tiene nombre propio. Abre el siguiente sobre. 😏</p>`
+  },
+  {
+    icon: "👑",
+    title: "Detrás de esta familia, siempre, está mamá",
+    body: `<img src="fotos/madre e hijas.jpg" class="m-photo-v" alt="Madre e hijas">
+    <div class="m-caption">Madre e hijas — el equipo detrás del regalo</div>
+    <p>Detrás de cada gran aventura hay una gran organizadora. Y detrás de esta familia, siempre, está <span class="hl">Cristina</span>.</p>
+    <p>Ella ha gestionado fechas imposibles, reservas, presupuestos, excusas, cambios de opinión de última hora y algún que otro drama logístico... todo con una sonrisa y sin perder los nervios (o casi).</p>
+    <div class="broma">💪 Habilidades certificadas: negociación familiar avanzada, gestión de crisis en tiempo real, paciencia infinita y el don de hacer que todo parezca fácil cuando no lo es en absoluto.</div>
+    <p>Este regalo es tuyo, papá. Pero el mérito de que exista... es completamente suyo. 🌟</p>`
+  },
+  {
+    icon: "❤️",
+    title: "Los participantes en la aventura",
+    body: `<p>Toda gran aventura necesita su gente. Esta es la tuya — los que han estado siempre, los que se han ganado su sitio, y uno que custodia el fuerte.</p>
+    <div class="crew-grid">
+      <div class="crew-card"><img src="fotos/papa y mama habitacion 1.jpg" class="crew-photo" alt="Papa y Mama"><div class="crew-name">José Luis &amp; Cristina</div><div class="crew-role">El Patrón &amp; Su Mano Derecha</div></div>
+      <div class="crew-card"><img src="fotos/cris y joselu habitacion 4.jpg" class="crew-photo" alt="Cris y Joselu"><div class="crew-name">Cris &amp; Joselu</div><div class="crew-role">Exploradora Mayor &amp; Navegante</div></div>
+      <div class="crew-card"><img src="fotos/fran y naina habitacion 3.jpg" class="crew-photo" alt="Naina y Fran"><div class="crew-name">Naina &amp; Fran</div><div class="crew-role">Jefa de Moral &amp; Logística</div></div>
+      <div class="crew-card"><img src="fotos/paula y martina habitacion 2.jpg" class="crew-photo" alt="Paula y Martina"><div class="crew-name">Paula &amp; Martina</div><div class="crew-role">Agentes del Caos (con amor)</div></div>
+      <div class="crew-card absent"><img src="fotos/lucas en tierra.jpg" class="crew-photo" alt="Lucas"><div class="crew-name">Lucas</div><div class="crew-role">Vigilante de tierra 🏠</div></div>
+      <div class="crew-card" style="background:#1a2744;border-color:#d4a843;"><div style="font-size:26px;margin-bottom:4px;">❤️</div><div class="crew-name" style="color:#d4a843;">Julio 2026</div><div class="crew-role">La aventura os espera</div></div>
+    </div>`
+  },
+  {
+    icon: "🎈",
+    title: "Pista #1 — Esta vez no es un globo",
+    body: `<img src="fotos/foto en globo.jpg" class="m-photo-v" alt="Foto en globo">
+    <div class="m-caption">Una aventura que ya vivisteis juntos...</div>
+    <p>Te has subido a un globo. Has visto el mundo desde las alturas. Has vivido aventuras que poca gente puede contar.</p>
+    <p>Pero esta vez, papá... <span class="hl">no vas en globo.</span></p>
+    <div class="pista-box">
+      <div class="pista-num">Pista número uno</div>
+      <div class="pista-text">Esta vez vas a otro nivel.<br>Más grande. Más épico.<br>Otro medio de transporte.</div>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-q">Antes de seguir... ¿cuál de estos medios de transporte puede llevar a más de 2.000 personas a la vez?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr1')">A) Un avión de largo radio</div>
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr1')">B) Un tren de alta velocidad</div>
+        <div class="quiz-opt" onclick="runQuiz(this,true,'qr1')">C) Un barco de crucero</div>
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr1')">D) Un globo aeronáutico</div>
+      </div>
+      <div class="quiz-result" id="qr1"></div>
+    </div>`
+  },
+  {
+    icon: "🌊",
+    title: "Pista #2 — El Mediterráneo te espera",
+    body: `<img src="fotos/repetir experiencias todos juntos.jpg" class="m-photo-v" alt="Repetir experiencias">
+    <div class="m-caption">Porque hay experiencias que merecen repetirse</div>
+    <p>Hay un mar que lo tiene todo: historia milenaria, bahías que quitan el aliento, gastronomía increíble y el sol más generoso del mundo.</p>
+    <div class="pista-box">
+      <div class="pista-num">Pista número dos</div>
+      <div class="pista-text">El Mediterráneo en julio.<br>Agua, sol, historia y familia.</div>
+      <div class="pista-sub">Croacia, Montenegro, Grecia, Italia...</div>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-q">¿Cuál de estas ciudades tiene una muralla medieval declarada Patrimonio de la Humanidad por la UNESCO?</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr2')">A) Split</div>
+        <div class="quiz-opt" onclick="runQuiz(this,true,'qr2')">B) Dubrovnik</div>
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr2')">C) Kotor</div>
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr2')">D) Corfú</div>
+      </div>
+      <div class="quiz-result" id="qr2"></div>
+    </div>`
+  },
+  {
+    icon: "❓",
+    title: "Pista #3 — Última prueba",
+    body: `<p>Ya casi estás. Una última pregunta para demostrar que eres el Patrón de esta aventura.</p>
+    <div class="pista-box" style="margin-bottom:8px;">
+      <div class="pista-num">Pista número tres</div>
+      <div class="pista-text">Kotor es una ciudad amurallada medieval.<br>¿En qué país está?</div>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-q">Elige bien — el último sobre depende de ti:</div>
+      <div class="quiz-opts">
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr3')">A) Croacia</div>
+        <div class="quiz-opt" onclick="runQuiz(this,true,'qr3')">B) Montenegro</div>
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr3')">C) Albania</div>
+        <div class="quiz-opt" onclick="runQuiz(this,false,'qr3')">D) Grecia</div>
+      </div>
+      <div class="quiz-result" id="qr3"></div>
+    </div>
+    <img src="fotos/mil aventuras mas juntos.jpg" class="m-photo" alt="Mil aventuras" style="margin-top:12px;">
+    <div class="m-caption">Mil aventuras más juntos — y esta es la siguiente</div>`
+  },
+  {
+    icon: "🎁",
+    title: "¡El regalo!",
+    body: `<p style="text-align:center;font-size:15px;color:#c8b89a;margin-bottom:16px;">Papá, este es tu regalo de 70 cumpleaños.</p>
+    <div class="reveal-box">
+      <div style="font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#7a9bbf;margin-bottom:8px;">Nos vamos en</div>
+      <div class="reveal-title">Norwegian Gem</div>
+      <div style="width:50px;height:2px;background:#d4a843;margin:12px auto;"></div>
+      <div class="reveal-dates">19 — 26 de Julio, 2026</div>
+      <div style="font-size:13px;color:#a8b8c8;margin-top:10px;">Adriático &amp; Mediterráneo</div>
+    </div>
+    <img src="fotos/PHOTO-2024-12-28-18-29-07.jpg" class="m-photo" alt="Familia" style="margin-top:14px;">
+    <div style="margin-top:14px;">
+      <div class="dest-row"><div class="dest-badge">Día 1</div><div><div class="dest-place">🇮🇹 Ravenna — Embarque 17:00h</div></div></div>
+      <div class="dest-row"><div class="dest-badge">Día 2</div><div><div class="dest-place">🇭🇷 Split, Croacia</div></div></div>
+      <div class="dest-row"><div class="dest-badge">Día 3</div><div><div class="dest-place">🇭🇷 Dubrovnik, Croacia</div></div></div>
+      <div class="dest-row"><div class="dest-badge">Día 4</div><div><div class="dest-place">🇲🇪 Kotor, Montenegro</div></div></div>
+      <div class="dest-row"><div class="dest-badge">Día 5</div><div><div class="dest-place">🇬🇷 Corfú, Grecia</div></div></div>
+      <div class="dest-row"><div class="dest-badge">Día 6</div><div><div class="dest-place">🇮🇹 Messina, Sicilia</div></div></div>
+      <div class="dest-row"><div class="dest-badge">Día 7</div><div><div class="dest-place">🇮🇹 Salerno, Italia</div></div></div>
+      <div class="dest-row"><div class="dest-badge">Día 8</div><div><div class="dest-place">🇮🇹 Civitavecchia (Roma) — Desembarque</div></div></div>
+    </div>
+    <p style="text-align:center;font-style:italic;color:#d4a843;font-size:14px;margin-top:16px;">Felices 70, Patrón. 🎂⚓</p>
+    <p style="text-align:center;font-size:13px;color:#7a9bbf;margin-top:6px;">Con todo nuestro amor —<br><strong style="color:#d4a843;">Cristina, Cris, Naina, Paula y Martina 💛</strong></p>`
+  }
+];
+
+let opened = new Set();
+const total = sobres.length;
+
+function showSobres() {
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('sobres-screen').style.display = 'block';
+}
+
+function openSobre(i) {
+  const s = sobres[i];
+  document.getElementById('m-icon').textContent = s.icon;
+  document.getElementById('m-title').textContent = s.title;
+  document.getElementById('m-body').innerHTML = s.body;
+  document.getElementById('modal').classList.add('active');
+  opened.add(i);
+  document.getElementById('s' + i).classList.add('opened');
+  document.getElementById('progress-fill').style.width = (opened.size / total * 100) + '%';
+  if (opened.size === total) {
+    document.getElementById('btn-final').style.display = 'inline-block';
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+function showFinal() {
+  document.getElementById('sobres-screen').style.display = 'none';
+  document.getElementById('final-screen').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function runQuiz(el, correct, resultId) {
+  const box = el.closest('.quiz-box');
+  box.querySelectorAll('.quiz-opt').forEach(o => o.style.pointerEvents = 'none');
+  const result = document.getElementById(resultId);
+  if (correct) {
+    el.classList.add('correct');
+    result.textContent = '¡Correcto! Sigue abriendo sobres...';
+    result.className = 'quiz-result show ok';
+  } else {
+    el.classList.add('wrong');
+    result.textContent = 'No exactamente... pero el Patrón siempre sigue adelante.';
+    result.className = 'quiz-result show fail';
+    setTimeout(() => {
+      box.querySelectorAll('.quiz-opt').forEach(o => { o.style.pointerEvents = 'auto'; o.classList.remove('wrong','correct'); });
+      result.className = 'quiz-result';
+    }, 1800);
+  }
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+</script>
+</body>
+</html>
